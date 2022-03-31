@@ -5,28 +5,30 @@
 #include <array>
 #include <tuple>
 
-template<int i, int j = 1>
+template<int nb_lignes = 1, int nb_colomns = 1>
 class Matrice
 {
 public:
-	Matrice(const std::array<std::array<int, j>, i>& matrice);
+	Matrice(const std::array<std::array<int, nb_colomns>, nb_lignes>& matrice);
 	Matrice(int n);
-	
-	void add(Matrice m);
-	void substract(Matrice m);
+	Matrice();
+
+	void add(const Matrice& m);
+	void substract(const Matrice& m);
 	void multiply(int n);
-	void multiply(Matrice m);
+	void multiply(const Matrice& m);
 	void transpose();
 	std::tuple<int, int> getDimention();
 
 	void operator()(int i, int j);
+	std::array<int, nb_colomns> operator[](int i);
 
 	friend Matrice pow(int n);
 	
 
 private:
-	std::tuple<int, int> dimention = std::make_tuple(i ,j);
-	std::array<std::array<int, j>, i> matrice;
+	std::tuple<int, int> m_dimention;
+	std::array<std::array<int, nb_colomns>, nb_lignes> m_matrice;
 };
 
 
