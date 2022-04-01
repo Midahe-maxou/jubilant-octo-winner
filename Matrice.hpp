@@ -18,12 +18,16 @@ public:
 	void multiply(int n);
 	void multiply(const Matrice& m);
 	void transpose();
-	std::tuple<int, int> getDimention();
 
-	void operator()(int i, int j);
-	std::array<int, nb_colomns> operator[](int i);
+	std::tuple<int, int> getDimention() const noexcept;
+	std::array<std::array<int, nb_colomns>, nb_lignes> getMatrice() const noexcept;
 
-	friend Matrice pow(int n);
+	void operator()(int i, int j) const;
+	std::array<int, nb_colomns> operator[](int i) const;
+
+	//friend std::ostream& operator<<(std::ostream& os, const Matrice<nb_lignes, nb_columns>& matrice);
+
+	//friend Matrice pow(int n) const;
 	
 
 private:

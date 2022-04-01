@@ -2,28 +2,24 @@
 #include <array>
 #include <tuple>
 #include <stdexcept>
-
+#include <iosfwd>
 
 using string = std::string;
 
-template<int nb_lignes = 1, int nb_colomns = 1>
+template<int nb_lignes = 1, int nb_columns = 1>
 class Matrice
 {
 public:
-	Matrice(const std::array<std::array<int, nb_colomns>, nb_lignes>& matrice)
+	Matrice(const std::array<std::array<int, nb_columns>, nb_lignes>& matrice)
 		:m_matrice(matrice)
 	{
-		m_dimention = std::make_tuple(nb_lignes, nb_colomns);
 	}
 
 	Matrice(int n)
 	{
-		m_dimention = std::make_tuple(nb_lignes, nb_colomns);
-		for (int i = 0; i < nb_lignes; i++)
-		{
-			for (int j = 0; j < nb_colomns; j++)
-			{
-				matrice(i, j) = n;
+		for (int i = 0; i < nb_lignes; i++) {
+			for (int j = 0; j < nb_columns; j++) {
+				m_matrice(i, j) = n;
 			}
 		}
 	}
@@ -38,12 +34,10 @@ public:
 		if (m_dimention != m.getDimention()) throw std::invalid_argument("Les deux matrices n'ont pas la même taille");
 
 
-		auto [lignes, colomns] = m_dimention;
-		for (int i = 0; i < lignes; i++)
-		{
-			for (int j = 0; j < colomns; j++)
-			{
-				m_matrice[i][j] += m[i][j]
+		int [lignes, columns] = m_dimention;
+		for (int i = 0; i < lignes; i++) {
+			for (int j = 0; j < columns; j++) {
+				m_matrice[i][j] += m[i][j];
 			}
 		}
 	}
@@ -55,10 +49,8 @@ public:
 
 	void multiply(int n)
 	{
-		for (auto& ligne : m_matrice)
-		{
-			for (int& i : ligne)
-			{
+		for (auto& ligne : m_matrice) {
+			for (int& i : ligne) {
 				i *= n;
 			}
 		}
@@ -67,38 +59,84 @@ public:
 	void multiply(const Matrice& m)
 	{
 
-		auto [m_lignes, m_colomns] = m_dimention;
-		auto [other_lignes, other_colomns] = m.getDimention();
+		int [m_lignes, m_columns] = m_dimention;
+		int [other_lignes, other_columns] = m.getDimention();
 
-		if (m_colomns != m_lignes) throw std::invalid_argument(std::to_string(m_lignes) + "x" + std::to_string(m_colomns) + " pas multipliable avec " + std::to_string(other_lignes) + "x" + std::to_string(other_colomns));
+		if (m_columns != m_lignes) throw std::invalid_argument(std::to_string(m_lignes) + "x" + std::to_string(m_columns) + " pas multipliable avec " + std::to_string(other_lignes) + "x" + std::to_string(other_columns));
 
-		Matrice<m_lignes, other_colomns> matrice
+		Matrice<m_lignes, other_columns> matrice;
 
-
-		for (int i = 0; i < m_lignes; i++)
-		{
-			for (int j = 0; j < other_colomns; j++)
-			{
+		for (int i = 0; i < m_lignes; i++) {
+			for (int j = 0; j < other_columns; j++) {
 				int somme = 0;
-				for (int k = 0; k < m_colomns; k++)
-				{
+				for (int k = 0; k < m_columns; k++) {
 					somme += m_matrice(i, k) * m(k, j);
 				}
+				matrice(i, j) = somme;
 			}
 		}
+
+		m_matrice = matrice.getMatrice();
+		m_dimention = matrice.getDimention();
 	}
 
-	void transpose();
-	std::tuple<int, int> getDimention();
+	void transpose()
+	{
+		int [lignes, columns] = getDimention();
+		Matrice<columns, lignes> matrice;
 
-	int operator()(int i, int j);
-	std::array<int, nb_colomns> operator[](int i);
+		for (int i = 0; i < lignes; i++) {
+			for (int j = 0; i < columns; j++) {
+				matrice(j, i) = m_matrice(i, j);
+			}
+		}
 
-	friend Matrice pow(int n);
+		m_matrice = matrice.getMatrice();
+		m_dimention = matrice.getDimention();
+	}
+
+	std::tuple<int, int> getDimention() const noexcept
+	{
+		return m_dimention;
+	}
+
+	std::array<std::array<int, nb_columns>, nb_lignes> getMatrice() const noexcept
+	{
+		return m_matrice;
+	}
+
+	int operator()(int i, int j) const
+	{
+		return m_matrice[i][j];
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const Matrice<nb_lignes, nb_columns>& matrice)
+	{
+		auto [lignes, columns] = matrice.getDimention();
+
+		os << "\n{\n";
+
+		for (int i = 0; i < lignes; i++) {
+			os << "(";
+			for (int j = 0; j < columns; j++) {
+				os << std::to_string(matrice(i, j)) << ", ";
+			}
+			os << ")\n";
+		}
+
+		os << "\n }\n";
+		return os;
+	}
+
+	std::array<int, nb_columns> operator[](int i) const
+	{
+		return m_matrice[i];
+	}
+
+	//friend Matrice pow(int n) const noexcept;
 
 
 private:
-	std::tuple<int, int> m_dimention;
-	std::array<std::array<int, nb_colomns>, nb_lignes> m_matrice;
-};
-
+	std::tuple<int, int> m_dimention = std::make_tuple(nb_lignes, nb_columns);
+	std::array<std::array<int, nb_columns>, nb_lignes> m_matrice;
+};;
